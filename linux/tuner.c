@@ -34,8 +34,18 @@ Meter meter;
 Status status;
 
 Options options;
-
 Audio audio;
+
+NoteOptions note_options;
+NoteFilter note_filter;
+
+static char *notes[] =
+{"C", "C", "D", "E", "E", "F",
+ "F", "G", "A", "A", "B", "B"};
+
+static char *sharps[] =
+{"", "#", "", "b", "", "",
+ "#", "", "b", "", "b", ""};
 
 // Main function
 
@@ -49,7 +59,28 @@ int main(int argc, char *argv[])
     GtkWidget *hbox;
     GtkWidget *quit;
     GtkWidget *options;
+    GtkWidget *note_options;
     GtkWidget *separator;
+
+    note_filter.filter = FALSE;
+    note_filter.note_a = TRUE;
+    note_filter.note_b = TRUE;
+    note_filter.note_c = TRUE;
+    note_filter.note_d = TRUE;
+    note_filter.note_e = TRUE;
+    note_filter.note_f = TRUE;
+    note_filter.note_g = TRUE;
+    note_filter.natural = TRUE;
+    note_filter.sharp = TRUE;
+    note_filter.flat = TRUE;
+    note_filter.octave_0 = TRUE;
+    note_filter.octave_1 = TRUE;
+    note_filter.octave_2 = TRUE;
+    note_filter.octave_3 = TRUE;
+    note_filter.octave_4 = TRUE;
+    note_filter.octave_5 = TRUE;
+    note_filter.octave_6 = TRUE;
+    note_filter.octave_7 = TRUE;
 
     // Restore options
 
@@ -69,6 +100,7 @@ int main(int argc, char *argv[])
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), "Tuner");
     gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+
 
     // V box, this contains the fake status bar and the rest of the
     // display
@@ -192,6 +224,16 @@ int main(int argc, char *argv[])
 
     g_signal_connect(G_OBJECT(options), "clicked",
 		     G_CALLBACK(options_clicked), window);
+
+    // Notes button
+
+    note_options = gtk_button_new_with_label("Notes");
+    gtk_box_pack_start(GTK_BOX(hbox), note_options, FALSE, FALSE, 0);
+
+    // Notes button clicked
+
+    g_signal_connect(G_OBJECT(note_options), "clicked",
+		     G_CALLBACK(notes_clicked), window);
 
     // Quit button
 
@@ -796,6 +838,80 @@ void *readAudio(void *dummy)
 		found = FALSE;
 	}
 
+    /**
+     * Filter notes
+     */
+    char *fundamental_note = notes[n % Length(notes)];
+    char *fundamental_accidental = sharps[n % Length(notes)];
+    int note_n;
+    char *note;
+    char *accidental;
+    int octave;
+
+    static maximum filtered_maxima[MAXIMA];
+    int filtered_count = 0;
+    for (int i = 0; i < count; i++)
+    {
+        note_n = maxima[i].n;
+        note = notes[note_n % Length(notes)];
+        accidental = sharps[note_n % Length(notes)];
+        octave = note_n /12;
+
+        // Filter by fundamental note.
+        if (note_filter.fundamental)
+        {
+            if (!(note == fundamental_note && accidental == fundamental_accidental))
+            {
+                continue;
+            }
+        }
+
+        // Filter specific notes.
+        if (note_filter.filter)
+        {
+            if (!(
+                (note_filter.note_a && note == "A")
+                || (note_filter.note_b && note == "B")
+                || (note_filter.note_c && note == "C")
+                || (note_filter.note_d && note == "D")
+                || (note_filter.note_e && note == "E")
+                || (note_filter.note_f && note == "F")
+                || (note_filter.note_g && note == "G")
+            ))
+            {
+                continue;
+            }
+
+            if (!(
+                (note_filter.natural && accidental == "")
+                || (note_filter.sharp && accidental == "#")
+                || (note_filter.flat && accidental == "b")
+            ))
+            {
+                continue;
+            }
+
+            if (!(
+                (note_filter.octave_0 && octave == 0)
+                || (note_filter.octave_1 && octave == 1)
+                || (note_filter.octave_2 && octave == 2)
+                || (note_filter.octave_3 && octave == 3)
+                || (note_filter.octave_4 && octave == 4)
+                || (note_filter.octave_5 && octave == 5)
+                || (note_filter.octave_6 && octave == 6)
+                || (note_filter.octave_7 && octave == 7)
+            ))
+            {
+                continue;
+            }
+        }
+
+        filtered_maxima[filtered_count] = maxima[i];
+        filtered_count++;
+    }
+    memcpy(maxima, filtered_maxima, sizeof(maxima));
+    count = filtered_count;
+
 	// If display not locked
 
 	gdk_threads_enter();
@@ -1346,14 +1462,6 @@ gboolean display_draw_callback(GtkWidget *widget, GdkEventExpose *event,
      LARGE_HEIGHT  = 36,
      LARGER_HEIGHT = 48,
      MEDIUM_HEIGHT = 24};
-
-    static char *notes[] =
-	{"C", "C", "D", "E", "E", "F",
-	 "F", "G", "A", "A", "B", "B"};
-
-    static char *sharps[] =
-	{"", "#", "", "b", "", "",
-	 "#", "", "b", "", "b", ""};
 
     if (library == NULL)
     {
@@ -2258,6 +2366,332 @@ void options_clicked(GtkWidget *widget, GtkWindow *window)
 		     G_CALLBACK(gtk_widget_destroyed), &options.dialog);
 
     gtk_widget_show_all(options.dialog);
+}
+
+// Note Filter Callbacks
+
+void fundamental_clicked(GtkWidget widget, void *data)
+{
+    note_filter.fundamental =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.fundamental));
+}
+void note_filter_clicked(GtkWidget widget, void *data)
+{
+    note_filter.filter =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.filter));
+}
+void note_a_clicked(GtkWidget widget, void *data)
+{
+    note_filter.note_a =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.note_a));
+}
+void note_b_clicked(GtkWidget widget, void *data)
+{
+    note_filter.note_b =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.note_b));
+}
+void note_c_clicked(GtkWidget widget, void *data)
+{
+    note_filter.note_c =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.note_c));
+}
+void note_d_clicked(GtkWidget widget, void *data)
+{
+    note_filter.note_d =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.note_d));
+}
+void note_e_clicked(GtkWidget widget, void *data)
+{
+    note_filter.note_e =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.note_e));
+}
+void note_f_clicked(GtkWidget widget, void *data)
+{
+    note_filter.note_f =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.note_f));
+}
+void note_g_clicked(GtkWidget widget, void *data)
+{
+    note_filter.note_g =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.note_g));
+}
+
+void natural_clicked(GtkWidget widget, void *data)
+{
+    note_filter.natural =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.natural));
+}
+void sharp_clicked(GtkWidget widget, void *data)
+{
+    note_filter.sharp =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.sharp));
+}
+void flat_clicked(GtkWidget widget, void *data)
+{
+    note_filter.flat =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.flat));
+}
+
+void octave_0_clicked(GtkWidget widget, void *data)
+{
+    note_filter.octave_0 =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.octave_0));
+}
+void octave_1_clicked(GtkWidget widget, void *data)
+{
+    note_filter.octave_1 =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.octave_1));
+}
+void octave_2_clicked(GtkWidget widget, void *data)
+{
+    note_filter.octave_2 =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.octave_2));
+}
+void octave_3_clicked(GtkWidget widget, void *data)
+{
+    note_filter.octave_3 =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.octave_3));
+}
+void octave_4_clicked(GtkWidget widget, void *data)
+{
+    note_filter.octave_4 =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.octave_4));
+}
+void octave_5_clicked(GtkWidget widget, void *data)
+{
+    note_filter.octave_5 =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.octave_5));
+}
+void octave_6_clicked(GtkWidget widget, void *data)
+{
+    note_filter.octave_6 =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.octave_6));
+}
+void octave_7_clicked(GtkWidget widget, void *data)
+{
+    note_filter.octave_7 =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.octave_7));
+}
+
+// Notes Button callback
+
+void notes_clicked(GtkWidget *widget, GtkWindow *window)
+{
+    GtkWidget *hbox;
+    GtkWidget *vbox;
+    GtkWidget *close;
+    GtkWidget *label;
+    GtkWidget *separator;
+
+    if (note_options.dialog != NULL)
+    {
+        gtk_widget_show_all(note_options.dialog);
+        return;
+    }
+
+    // Create options dialog
+
+    note_options.dialog = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_title(GTK_WINDOW(note_options.dialog), "Notes");
+    gtk_window_set_resizable(GTK_WINDOW(note_options.dialog), TRUE);
+    gtk_window_set_transient_for(GTK_WINDOW(note_options.dialog), window);
+
+    vbox = gtk_vbox_new(FALSE, 0);
+    gtk_container_add(GTK_CONTAINER(note_options.dialog), vbox);
+
+    hbox = gtk_hbox_new(FALSE, MARGIN);
+    gtk_box_pack_end(GTK_BOX(vbox), hbox, FALSE, FALSE, MARGIN);
+
+    // Close button
+
+    close = gtk_button_new_with_label("Close");
+    gtk_box_pack_end(GTK_BOX(hbox), close, FALSE, FALSE, MARGIN);
+    g_signal_connect_swapped(G_OBJECT(close), "clicked",
+			     G_CALLBACK(gtk_widget_hide), note_options.dialog);
+
+    hbox = gtk_hbox_new(TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
+    vbox = gtk_vbox_new(FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, MARGIN);
+
+    note_options.fundamental = gtk_check_button_new_with_label("Filter by fundamental");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.fundamental),
+				 note_filter.fundamental);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.fundamental, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.fundamental), "toggled",
+		     G_CALLBACK(fundamental_clicked), window);
+
+    separator = gtk_hseparator_new();
+    gtk_box_pack_start(GTK_BOX(vbox), separator, FALSE, FALSE, MARGIN);
+
+    // Filter
+
+    note_options.filter = gtk_check_button_new_with_label("Filter specific notes");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.filter),
+				 note_filter.filter);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.filter, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.filter), "toggled",
+		     G_CALLBACK(note_filter_clicked), window);
+
+    hbox = gtk_hbox_new(TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, MARGIN);
+
+    // Note Options
+
+    vbox = gtk_vbox_new(FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, MARGIN);
+
+    label = gtk_label_new("Notes");
+    gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);
+
+    note_options.note_a = gtk_check_button_new_with_label("A");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.note_a),
+				 note_filter.note_a);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.note_a, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.note_a), "toggled",
+		     G_CALLBACK(note_a_clicked), window);
+
+    note_options.note_b = gtk_check_button_new_with_label("B");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.note_b),
+				 note_filter.note_b);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.note_b, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.note_b), "toggled",
+		     G_CALLBACK(note_b_clicked), window);
+
+    note_options.note_c = gtk_check_button_new_with_label("C");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.note_c),
+				 note_filter.note_c);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.note_c, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.note_c), "toggled",
+		     G_CALLBACK(note_c_clicked), window);
+
+    note_options.note_d = gtk_check_button_new_with_label("D");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.note_d),
+				 note_filter.note_d);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.note_d, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.note_d), "toggled",
+		     G_CALLBACK(note_d_clicked), window);
+
+    note_options.note_e = gtk_check_button_new_with_label("E");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.note_e),
+				 note_filter.note_e);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.note_e, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.note_e), "toggled",
+		     G_CALLBACK(note_e_clicked), window);
+
+    note_options.note_f = gtk_check_button_new_with_label("F");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.note_f),
+				 note_filter.note_f);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.note_f, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.note_f), "toggled",
+		     G_CALLBACK(note_f_clicked), window);
+
+    note_options.note_g = gtk_check_button_new_with_label("G");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.note_g),
+				 note_filter.note_g);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.note_g, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.note_g), "toggled",
+		     G_CALLBACK(note_g_clicked), window);
+
+    // Accidentals
+
+    vbox = gtk_vbox_new(FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, MARGIN);
+
+    label = gtk_label_new("Accidentals");
+    gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);
+
+    note_options.natural = gtk_check_button_new_with_label("Natural");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.natural),
+				 note_filter.natural);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.natural, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.natural), "toggled",
+		     G_CALLBACK(natural_clicked), window);
+
+    note_options.sharp = gtk_check_button_new_with_label("Sharp");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.sharp),
+				 note_filter.sharp);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.sharp, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.sharp), "toggled",
+		     G_CALLBACK(sharp_clicked), window);
+
+    note_options.flat = gtk_check_button_new_with_label("Flat");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.flat),
+				 note_filter.flat);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.flat, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.flat), "toggled",
+		     G_CALLBACK(flat_clicked), window);
+
+    // Octaves
+
+    vbox = gtk_vbox_new(FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, MARGIN);
+
+    label = gtk_label_new("Octaves");
+    gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);
+
+    note_options.octave_0 = gtk_check_button_new_with_label("0");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.octave_0),
+				 note_filter.octave_0);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.octave_0, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.octave_0), "toggled",
+		     G_CALLBACK(octave_0_clicked), window);
+
+    note_options.octave_1 = gtk_check_button_new_with_label("1");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.octave_1),
+				 note_filter.octave_1);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.octave_1, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.octave_1), "toggled",
+		     G_CALLBACK(octave_1_clicked), window);
+
+    note_options.octave_2 = gtk_check_button_new_with_label("2");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.octave_2),
+				 note_filter.octave_2);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.octave_2, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.octave_2), "toggled",
+		     G_CALLBACK(octave_2_clicked), window);
+
+    note_options.octave_3 = gtk_check_button_new_with_label("3");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.octave_3),
+				 note_filter.octave_3);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.octave_3, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.octave_3), "toggled",
+		     G_CALLBACK(octave_3_clicked), window);
+
+    note_options.octave_4 = gtk_check_button_new_with_label("4");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.octave_4),
+				 note_filter.octave_4);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.octave_4, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.octave_4), "toggled",
+		     G_CALLBACK(octave_4_clicked), window);
+
+    note_options.octave_5 = gtk_check_button_new_with_label("5");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.octave_5),
+				 note_filter.octave_5);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.octave_5, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.octave_5), "toggled",
+		     G_CALLBACK(octave_5_clicked), window);
+
+    note_options.octave_6 = gtk_check_button_new_with_label("6");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.octave_6),
+				 note_filter.octave_6);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.octave_6, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.octave_6), "toggled",
+		     G_CALLBACK(octave_6_clicked), window);
+
+    note_options.octave_7 = gtk_check_button_new_with_label("7");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.octave_7),
+				 note_filter.octave_7);
+    gtk_box_pack_start(GTK_BOX(vbox), note_options.octave_7, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(note_options.octave_7), "toggled",
+		     G_CALLBACK(octave_7_clicked), window);
+
+    // Destroy dialog callback
+
+    g_signal_connect(G_OBJECT(note_options.dialog), "destroy",
+		     G_CALLBACK(gtk_widget_destroyed), &note_options.dialog);
+
+    gtk_widget_show_all(note_options.dialog);
 }
 
 // Save callback

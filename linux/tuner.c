@@ -725,8 +725,59 @@ void *readAudio(void *dummy)
 
 	// Find maximum value, and list of maxima
 
+    int note_n;
+    char *note;
+    char *accidental;
+    int octave;
+
 	for (int i = 1; i < limit; i++)
 	{
+		// Remove the notes that are filtered specifically.
+		double cfx = -12.0 * log2(audio.reference / xf[i]);
+		note_n = round(cfx) + C5_OFFSET;
+        note = notes[note_n % Length(notes)];
+        accidental = sharps[note_n % Length(notes)];
+        octave = note_n /12;
+
+        if (note_filter.filter)
+        {
+            if (!(
+                (note_filter.note_a && note == "A")
+                || (note_filter.note_b && note == "B")
+                || (note_filter.note_c && note == "C")
+                || (note_filter.note_d && note == "D")
+                || (note_filter.note_e && note == "E")
+                || (note_filter.note_f && note == "F")
+                || (note_filter.note_g && note == "G")
+            ))
+            {
+                continue;
+            }
+
+            if (!(
+                (note_filter.natural && accidental == "")
+                || (note_filter.sharp && accidental == "#")
+                || (note_filter.flat && accidental == "b")
+            ))
+            {
+                continue;
+            }
+
+            if (!(
+                (note_filter.octave_0 && octave == 0)
+                || (note_filter.octave_1 && octave == 1)
+                || (note_filter.octave_2 && octave == 2)
+                || (note_filter.octave_3 && octave == 3)
+                || (note_filter.octave_4 && octave == 4)
+                || (note_filter.octave_5 && octave == 5)
+                || (note_filter.octave_6 && octave == 6)
+                || (note_filter.octave_7 && octave == 7)
+            ))
+            {
+                continue;
+            }
+        }
+
 	    if (xa[i] > max)
 	    {
 		max = xa[i];
@@ -838,18 +889,12 @@ void *readAudio(void *dummy)
 		found = FALSE;
 	}
 
-    /**
-     * Filter notes
-     */
+    // Once the fundamental note is established, allow filtering by it.
     char *fundamental_note = notes[n % Length(notes)];
     char *fundamental_accidental = sharps[n % Length(notes)];
-    int note_n;
-    char *note;
-    char *accidental;
-    int octave;
 
-    static maximum filtered_maxima[MAXIMA];
-    int filtered_count = 0;
+    static maximum filtered_maxima2[MAXIMA];
+    int filtered_count2 = 0;
     for (int i = 0; i < count; i++)
     {
         note_n = maxima[i].n;
@@ -906,11 +951,11 @@ void *readAudio(void *dummy)
             }
         }
 
-        filtered_maxima[filtered_count] = maxima[i];
-        filtered_count++;
+        filtered_maxima2[filtered_count2] = maxima[i];
+        filtered_count2++;
     }
-    memcpy(maxima, filtered_maxima, sizeof(maxima));
-    count = filtered_count;
+    memcpy(maxima, filtered_maxima2, sizeof(maxima));
+    count = filtered_count2;
 
 	// If display not locked
 

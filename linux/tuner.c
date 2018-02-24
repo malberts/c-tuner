@@ -939,7 +939,7 @@ void fftr(complex a[], int n)
 	}
 	j += m;
     }
-    
+
     for (int mmax = 1, istep = 2 * mmax; mmax < n;
 	 mmax = istep, istep = 2 * mmax)
     {
@@ -1197,7 +1197,7 @@ gboolean spectrum_draw_callback(GtkWidget *widget, GdkEventExpose *event,
 		    max = value;
 
 		int y = -round(value * yscale);
-		int x = round(((float)i - spectrum.l) * xscale); 
+		int x = round(((float)i - spectrum.l) * xscale);
 
 		cairo_line_to(cr, x, y);
 	    }
@@ -2073,7 +2073,7 @@ void options_clicked(GtkWidget *widget, GtkWindow *window)
 	gtk_widget_show_all(options.dialog);
 	return;
     }
-	
+
     // Create options dialog
 
     options.dialog = gtk_window_new(GTK_WINDOW_TOPLEVEL);

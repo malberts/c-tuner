@@ -30,7 +30,7 @@
 #include <pthread.h>
 
 #include <ft2build.h>
-#include FT_FREETYPE_H 
+#include FT_FREETYPE_H
 
 #include <cairo/cairo.h>
 #include <cairo/cairo-ft.h>
@@ -154,7 +154,7 @@ typedef struct
 typedef struct
 {
     GtkWidget *widget;
-    GtkWidget *slider; 
+    GtkWidget *slider;
     double c;
 } Meter;
 

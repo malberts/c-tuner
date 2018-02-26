@@ -2035,6 +2035,13 @@ gboolean key_press(GtkWidget *window, GdkEventKey *event, void *data)
     return TRUE;
 }
 
+// Reference changed
+
+void reference_changed(GtkWidget widget, void *data)
+{
+    audio.reference = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(options.reference));
+}
+
 // Filter clicked
 
 void filter_clicked(GtkWidget widget, void *data)
@@ -2363,6 +2370,11 @@ void options_clicked(GtkWidget *widget, GtkWindow *window)
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(options.reference),
 			      audio.reference);
     gtk_box_pack_start(GTK_BOX(ibox), options.reference, FALSE, FALSE, 0);
+
+    // Reference changed
+
+    g_signal_connect(G_OBJECT(options.reference), "value-changed",
+		     G_CALLBACK(reference_changed), window);
 
     // V box
 

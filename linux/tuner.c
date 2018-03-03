@@ -64,13 +64,10 @@ int main(int argc, char *argv[])
     note_filter.fundamental = FALSE;
     note_filter.filter = FALSE;
     for (int i; i < Length(note_filter.notes); i++)
-    {
         note_filter.notes[i] = TRUE;
-    }
+
     for (int i; i < Length(note_filter.octaves); i++)
-    {
         note_filter.octaves[i] = TRUE;
-    }
 
     // Restore options
     restoreOptions();
@@ -657,14 +654,10 @@ void *readAudio(void *dummy)
 	    note_n = round(cf) + C5_OFFSET;
 
 	    // Exclude filtered notes
-	    if (note_filter.filter)
-            {
-                if (!note_filter.notes[note_n % 12] ||
-		    (note_n >= 0 && !note_filter.octaves[note_n / 12]))
-                {
-                    continue;
-                }
-            }
+	    if (note_filter.filter &&
+		(!note_filter.notes[note_n % 12] ||
+		(note_n >= 0 && !note_filter.octaves[note_n / 12])))
+		continue;
 
 	    if (xa[i] > max)
 	    {
@@ -767,9 +760,7 @@ void *readAudio(void *dummy)
 
 		// Filter by fundamental note
 		if (n % 12 != note_n % 12)
-		{
 		    continue;
-		}
 
 		filtered_maxima2[filtered_count2] = maxima[i];
 		filtered_count2++;

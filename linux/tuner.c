@@ -62,7 +62,8 @@ int main(int argc, char *argv[])
     GtkWidget *note_options;
     GtkWidget *separator;
 
-	// Make
+	// Set note filter defaults
+
     note_filter.fundamental = FALSE;
     note_filter.filter = FALSE;
     for (int i; i < Length(note_filter.notes); i++)

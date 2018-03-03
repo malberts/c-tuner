@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     GtkWidget *note_options;
     GtkWidget *separator;
 
-	// Set note filter defaults
+    // Set note filter defaults
 
     note_filter.fundamental = FALSE;
     note_filter.filter = FALSE;
@@ -716,30 +716,30 @@ void *readAudio(void *dummy)
 	int count = 0;
 	int limit = RANGE - 1;
 
+	// Current/filtered note number
+
+	int note_n;
+
 	// Find maximum value, and list of maxima
-
-	// Filtered note number
-
-    int note_n;
 
 	for (int i = 1; i < limit; i++)
 	{
-		// Cents relative to reference
+	    // Cents relative to reference
 
-		double cf =
-			-12.0 * log2(audio.reference / xf[i]);
-		note_n = round(cf) + C5_OFFSET;
+	    double cf =
+		-12.0 * log2(audio.reference / xf[i]);
+	    note_n = round(cf) + C5_OFFSET;
 
-		// Exclude filtered notes
+	    // Exclude filtered notes
 
-        if (note_filter.filter)
-        {
-            if (!note_filter.notes[note_n % 12]
-            || (note_n >= 0 && !note_filter.octaves[note_n / 12]))
+	    if (note_filter.filter)
             {
-                continue;
+                if (!note_filter.notes[note_n % 12] ||
+		    (note_n >= 0 && !note_filter.octaves[note_n / 12]))
+                {
+                    continue;
+                }
             }
-        }
 
 	    if (xa[i] > max)
 	    {
@@ -847,28 +847,28 @@ void *readAudio(void *dummy)
 		found = FALSE;
 	}
 
-    // Once the fundamental note (n) is established, allow filtering by it.
+	// Once the fundamental note (n) is established, allow filtering by it.
 
-    if (note_filter.fundamental)
-    {
-        static maximum filtered_maxima2[MAXIMA];
-        int filtered_count2 = 0;
-        for (int i = 0; i < count; i++)
-        {
-            note_n = maxima[i].n;
+	if (note_filter.fundamental)
+	{
+	    static maximum filtered_maxima2[MAXIMA];
+	    int filtered_count2 = 0;
+	    for (int i = 0; i < count; i++)
+	    {
+		note_n = maxima[i].n;
 
-            // Filter by fundamental note
-            if (n % 12 != note_n % 12)
-            {
-                continue;
-            }
+		// Filter by fundamental note
+		if (n % 12 != note_n % 12)
+		{
+		    continue;
+		}
 
-            filtered_maxima2[filtered_count2] = maxima[i];
-            filtered_count2++;
-        }
-        memcpy(maxima, filtered_maxima2, sizeof(maxima));
-        count = filtered_count2;
-    }
+		filtered_maxima2[filtered_count2] = maxima[i];
+		filtered_count2++;
+	    }
+	    memcpy(maxima, filtered_maxima2, sizeof(maxima));
+	    count = filtered_count2;
+	}
 
 	// If display not locked
 
@@ -2338,33 +2338,40 @@ void options_clicked(GtkWidget *widget, GtkWindow *window)
     gtk_widget_show_all(options.dialog);
 }
 
-// Note Filter Callbacks
+// Fundamental note filter clicked
 
 void fundamental_clicked(GtkWidget widget, void *data)
 {
     note_filter.fundamental =
 	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.fundamental));
 }
+
+// Note filter clicked
+
 void note_filter_clicked(GtkWidget widget, void *data)
 {
     note_filter.filter =
 	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(note_options.filter));
 }
 
+// Specific note clicked
+
 void note_clicked(GtkWidget *widget, void *data)
 {
     int i = -1;
     sscanf(gtk_widget_get_name(widget), "note_%d", &i);
     note_filter.notes[i] =
-        gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
 }
+
+// Specific octave clicked
 
 void octave_clicked(GtkWidget *widget, void *data)
 {
     int i;
     sscanf(gtk_widget_get_name(widget), "octave_%d", &i);
     note_filter.octaves[i] =
-        gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
 }
 
 // Notes Button callback
@@ -2379,8 +2386,8 @@ void notes_clicked(GtkWidget *widget, GtkWindow *window)
 
     if (note_options.dialog != NULL)
     {
-        gtk_widget_show_all(note_options.dialog);
-        return;
+	gtk_widget_show_all(note_options.dialog);
+	return;
     }
 
     // Create options dialog
@@ -2408,12 +2415,16 @@ void notes_clicked(GtkWidget *widget, GtkWindow *window)
     vbox = gtk_vbox_new(FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, MARGIN);
 
+    // Fundamental filter
+
     note_options.fundamental = gtk_check_button_new_with_label("Filter by fundamental");
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.fundamental),
 				 note_filter.fundamental);
     gtk_box_pack_start(GTK_BOX(vbox), note_options.fundamental, FALSE, FALSE, 0);
     g_signal_connect(G_OBJECT(note_options.fundamental), "toggled",
 		     G_CALLBACK(fundamental_clicked), window);
+
+    // Separator
 
     separator = gtk_hseparator_new();
     gtk_box_pack_start(GTK_BOX(vbox), separator, FALSE, FALSE, MARGIN);
@@ -2444,14 +2455,14 @@ void notes_clicked(GtkWidget *widget, GtkWindow *window)
     static char note_widget_name[8];
     for (int i = 0; i < Length(note_options.notes); i++)
     {
-        sprintf(note_widget_label, "%s%s", notes[i], sharps[i]);
-        sprintf(note_widget_name, "note_%02i", i);
-        note_options.notes[i] = gtk_check_button_new_with_label(note_widget_label);
-        gtk_widget_set_name(note_options.notes[i], note_widget_name);
-        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.notes[i]),
+	sprintf(note_widget_label, "%s%s", notes[i], sharps[i]);
+	sprintf(note_widget_name, "note_%02i", i);
+	note_options.notes[i] = gtk_check_button_new_with_label(note_widget_label);
+	gtk_widget_set_name(note_options.notes[i], note_widget_name);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.notes[i]),
                      TRUE);
-        gtk_box_pack_start(GTK_BOX(vbox), note_options.notes[i], FALSE, FALSE, 0);
-        g_signal_connect(G_OBJECT(note_options.notes[i]), "toggled",
+	gtk_box_pack_start(GTK_BOX(vbox), note_options.notes[i], FALSE, FALSE, 0);
+	g_signal_connect(G_OBJECT(note_options.notes[i]), "toggled",
                  G_CALLBACK(note_clicked), window);
     }
 
@@ -2469,14 +2480,14 @@ void notes_clicked(GtkWidget *widget, GtkWindow *window)
     static char octave_widget_name[9];
     for (int i = 0; i < Length(note_options.octaves); i++)
     {
-        sprintf(octave_widget_label, "%i", i);
-        sprintf(octave_widget_name, "octave_%i", i);
-        note_options.octaves[i] = gtk_check_button_new_with_label(octave_widget_label);
-        gtk_widget_set_name(note_options.octaves[i], octave_widget_name);
-        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.octaves[i]),
+	sprintf(octave_widget_label, "%i", i);
+	sprintf(octave_widget_name, "octave_%i", i);
+	note_options.octaves[i] = gtk_check_button_new_with_label(octave_widget_label);
+	gtk_widget_set_name(note_options.octaves[i], octave_widget_name);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.octaves[i]),
                      TRUE);
-        gtk_box_pack_start(GTK_BOX(vbox), note_options.octaves[i], FALSE, FALSE, 0);
-        g_signal_connect(G_OBJECT(note_options.octaves[i]), "toggled",
+	gtk_box_pack_start(GTK_BOX(vbox), note_options.octaves[i], FALSE, FALSE, 0);
+	g_signal_connect(G_OBJECT(note_options.octaves[i]), "toggled",
                  G_CALLBACK(octave_clicked), window);
     }
 

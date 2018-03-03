@@ -60,7 +60,6 @@ int main(int argc, char *argv[])
     GtkWidget *separator;
 
     // Set note filter defaults
-
     note_filter.fundamental = FALSE;
     note_filter.filter = FALSE;
     for (int i; i < Length(note_filter.notes); i++)
@@ -647,20 +646,17 @@ void *readAudio(void *dummy)
 	int limit = RANGE - 1;
 
 	// Current/filtered note number
-
 	int note_n;
 
 	// Find maximum value, and list of maxima
 	for (int i = 1; i < limit; i++)
 	{
 	    // Cents relative to reference
-
 	    double cf =
 		-12.0 * log2(audio.reference / xf[i]);
 	    note_n = round(cf) + C5_OFFSET;
 
 	    // Exclude filtered notes
-
 	    if (note_filter.filter)
             {
                 if (!note_filter.notes[note_n % 12] ||
@@ -760,8 +756,7 @@ void *readAudio(void *dummy)
 		found = FALSE;
 	}
 
-	// Once the fundamental note (n) is established, allow filtering by it.
-
+	// Once the fundamental note (n) is established, allow filtering by it
 	if (note_filter.fundamental)
 	{
 	    static maximum filtered_maxima2[MAXIMA];
@@ -2130,7 +2125,6 @@ void options_clicked(GtkWidget *widget, GtkWindow *window)
 }
 
 // Fundamental note filter clicked
-
 void fundamental_clicked(GtkWidget widget, void *data)
 {
     note_filter.fundamental =
@@ -2138,7 +2132,6 @@ void fundamental_clicked(GtkWidget widget, void *data)
 }
 
 // Note filter clicked
-
 void note_filter_clicked(GtkWidget widget, void *data)
 {
     note_filter.filter =
@@ -2146,7 +2139,6 @@ void note_filter_clicked(GtkWidget widget, void *data)
 }
 
 // Specific note clicked
-
 void note_clicked(GtkWidget *widget, void *data)
 {
     int i = -1;
@@ -2156,7 +2148,6 @@ void note_clicked(GtkWidget *widget, void *data)
 }
 
 // Specific octave clicked
-
 void octave_clicked(GtkWidget *widget, void *data)
 {
     int i;
@@ -2166,7 +2157,6 @@ void octave_clicked(GtkWidget *widget, void *data)
 }
 
 // Notes Button callback
-
 void notes_clicked(GtkWidget *widget, GtkWindow *window)
 {
     GtkWidget *hbox;
@@ -2182,7 +2172,6 @@ void notes_clicked(GtkWidget *widget, GtkWindow *window)
     }
 
     // Create options dialog
-
     note_options.dialog = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(note_options.dialog), "Notes");
     gtk_window_set_resizable(GTK_WINDOW(note_options.dialog), TRUE);
@@ -2195,7 +2184,6 @@ void notes_clicked(GtkWidget *widget, GtkWindow *window)
     gtk_box_pack_end(GTK_BOX(vbox), hbox, FALSE, FALSE, MARGIN);
 
     // Close button
-
     close = gtk_button_new_with_label("Close");
     gtk_box_pack_end(GTK_BOX(hbox), close, FALSE, FALSE, MARGIN);
     g_signal_connect_swapped(G_OBJECT(close), "clicked",
@@ -2207,7 +2195,6 @@ void notes_clicked(GtkWidget *widget, GtkWindow *window)
     gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, MARGIN);
 
     // Fundamental filter
-
     note_options.fundamental = gtk_check_button_new_with_label("Filter by fundamental");
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.fundamental),
 				 note_filter.fundamental);
@@ -2216,12 +2203,10 @@ void notes_clicked(GtkWidget *widget, GtkWindow *window)
 		     G_CALLBACK(fundamental_clicked), window);
 
     // Separator
-
     separator = gtk_hseparator_new();
     gtk_box_pack_start(GTK_BOX(vbox), separator, FALSE, FALSE, MARGIN);
 
-    // Filter
-
+    // Specific Note Filter
     note_options.filter = gtk_check_button_new_with_label("Filter specific notes");
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(note_options.filter),
 				 note_filter.filter);
@@ -2232,16 +2217,14 @@ void notes_clicked(GtkWidget *widget, GtkWindow *window)
     hbox = gtk_hbox_new(TRUE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, MARGIN);
 
-    // Note Options
-
+    // Specific Notes
     vbox = gtk_vbox_new(FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, MARGIN);
 
     label = gtk_label_new("Notes");
     gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);
 
-    // Note checkboxes
-
+    // Specific Note checkboxes
     static char note_widget_label[3];
     static char note_widget_name[8];
     for (int i = 0; i < Length(note_options.notes); i++)
@@ -2257,16 +2240,14 @@ void notes_clicked(GtkWidget *widget, GtkWindow *window)
                  G_CALLBACK(note_clicked), window);
     }
 
-    // Octaves
-
+    // Specific Octaves
     vbox = gtk_vbox_new(FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, MARGIN);
 
     label = gtk_label_new("Octaves");
     gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);
 
-    // Octave checkboxes
-
+    // Specific Octave checkboxes
     static char octave_widget_label[2];
     static char octave_widget_name[9];
     for (int i = 0; i < Length(note_options.octaves); i++)
@@ -2283,7 +2264,6 @@ void notes_clicked(GtkWidget *widget, GtkWindow *window)
     }
 
     // Destroy dialog callback
-
     g_signal_connect(G_OBJECT(note_options.dialog), "destroy",
 		     G_CALLBACK(gtk_widget_destroyed), &note_options.dialog);
 

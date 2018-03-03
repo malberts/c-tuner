@@ -20,7 +20,7 @@
 
 import Cocoa
 
-class Scope: TunerView
+class ScopeView: TunerView
 {
     let kTextSize: CGFloat = 10
     var max: Float = 0
@@ -29,7 +29,7 @@ class Scope: TunerView
     {
         if (event.type == .leftMouseDown)
         {
-            audio.filter = !audio.filter
+            audioData.filter = !audioData.filter
         }
     }
 
@@ -126,7 +126,7 @@ class Scope: TunerView
             path.stroke()
 
         // Show F if filtered
-        if (audio.filter == true)
+        if (audioData.filter == true)
         {
 	    // Yellow text
             NSColor.yellow.set()

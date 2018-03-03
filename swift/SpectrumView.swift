@@ -20,7 +20,7 @@
 
 import Cocoa
 
-class Spectrum: TunerView
+class SpectrumView: TunerView
 {
     let kTextSize: CGFloat = 10
     var max: Float = 0
@@ -262,7 +262,7 @@ class Spectrum: TunerView
 	    }
         }
 
-        if (audio.downsample == false)
+        if (audioData.downsample == false)
         {
 	    NSColor.yellow.set()
             let font = NSFont.boldSystemFont(ofSize: kTextSize)

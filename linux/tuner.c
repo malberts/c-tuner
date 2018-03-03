@@ -2132,7 +2132,7 @@ void note_filter_clicked(GtkWidget widget, void *data)
 // Specific note clicked
 void note_clicked(GtkWidget *widget, void *data)
 {
-    int i = -1;
+    int i;
     sscanf(gtk_widget_get_name(widget), "note_%d", &i);
     note_filter.notes[i] =
 	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));

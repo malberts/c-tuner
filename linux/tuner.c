@@ -33,6 +33,7 @@ Meter meter;
 Status status;
 
 Options options;
+
 Audio audio;
 
 NoteOptions note_options;
@@ -85,7 +86,6 @@ int main(int argc, char *argv[])
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), "Tuner");
     gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
-
 
     // V box, this contains the fake status bar and the rest of the
     // display

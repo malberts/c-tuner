@@ -193,48 +193,16 @@ typedef struct
     GtkWidget *dialog;
     GtkWidget *fundamental;
     GtkWidget *filter;
-    GtkWidget *note_a;
-    GtkWidget *note_b;
-    GtkWidget *note_c;
-    GtkWidget *note_d;
-    GtkWidget *note_e;
-    GtkWidget *note_f;
-    GtkWidget *note_g;
-    GtkWidget *natural;
-    GtkWidget *sharp;
-    GtkWidget *flat;
-    GtkWidget *octave_0;
-    GtkWidget *octave_1;
-    GtkWidget *octave_2;
-    GtkWidget *octave_3;
-    GtkWidget *octave_4;
-    GtkWidget *octave_5;
-    GtkWidget *octave_6;
-    GtkWidget *octave_7;
+    GtkWidget *notes[12];
+    GtkWidget *octaves[8];
 } NoteOptions;
 
 typedef struct
 {
     gboolean fundamental;
     gboolean filter;
-    gboolean note_a;
-    gboolean note_b;
-    gboolean note_c;
-    gboolean note_d;
-    gboolean note_e;
-    gboolean note_f;
-    gboolean note_g;
-    gboolean natural;
-    gboolean sharp;
-    gboolean flat;
-    gboolean octave_0;
-    gboolean octave_1;
-    gboolean octave_2;
-    gboolean octave_3;
-    gboolean octave_4;
-    gboolean octave_5;
-    gboolean octave_6;
-    gboolean octave_7;
+    gboolean notes[12];
+    gboolean octaves[8];
 } NoteFilter;
 
 void restoreOptions(void);

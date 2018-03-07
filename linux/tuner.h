@@ -65,7 +65,7 @@ enum
     {MAXIMA = 8,
      OVERSAMPLE = 16,
      SAMPLES = 16384,
-     RANGE = SAMPLES * 3 / 8,
+     RANGE = SAMPLES * 7 / 16,
      STEP = SAMPLES / OVERSAMPLE};
 
 // Tuner reference values
@@ -188,7 +188,7 @@ typedef struct
     GtkWidget *fundamental;
     GtkWidget *filter;
     GtkWidget *notes[12];
-    GtkWidget *octaves[8];
+    GtkWidget *octaves[9];
 } NoteOptions;
 
 typedef struct
